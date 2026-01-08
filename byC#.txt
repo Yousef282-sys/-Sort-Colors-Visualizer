@@ -1,0 +1,147 @@
+/*try
+{
+    // Read number of elements
+    Console.Write("Enter number of colors: ");
+    int n = Convert.ToInt32(Console.ReadLine());
+
+    // Read colors
+    Console.WriteLine("Enter colors (0, 1, or 2) separated by space:");
+    string[] inputs = Console.ReadLine().Split(' ');
+
+    // Check count
+    if (inputs.Length != n)
+    {
+        Console.WriteLine("sorry");
+        return;
+    }
+
+    int[] arr = new int[n];
+
+    // Validate and convert
+    for (int i = 0; i < n; i++)
+    {
+        int value = Convert.ToInt32(inputs[i]);
+
+        if (value != 0 && value != 1 && value != 2)
+        {
+            Console.WriteLine("sorry");
+            return;
+        }
+
+        arr[i] = value;
+    }
+
+    // Bubble Sort
+    for (int i = 0; i < arr.Length - 1; i++)
+    {
+        for (int j = 0; j < arr.Length - i - 1; j++)
+        {
+            if (arr[j] > arr[j + 1])
+            {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+
+    // Output
+    Console.WriteLine("Sorted colors:");
+    foreach (int color in arr)
+    {
+        Console.Write(color + " ");
+    }
+
+
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Message:{ex}");
+}
+*/
+
+   static int[] ReadColors()
+   {
+       // Read number of elements
+       Console.Write("Enter number of colors: ");
+       int n = Convert.ToInt32(Console.ReadLine());
+
+       // Read colors
+       Console.WriteLine("Enter colors (0, 1, or 2) separated by space:");
+       string[] inputs = Console.ReadLine().Split(' ');
+
+       // Check count
+       if (inputs.Length != n)
+       {
+           Console.WriteLine("sorry");
+          
+       }
+
+       int[] arr = new int[n];
+
+       // Validate and convert
+       for (int i = 0; i < n; i++)
+       {
+           int value = Convert.ToInt32(inputs[i]);
+
+           if (value != 0 && value != 1 && value != 2)
+           {
+               Console.WriteLine("sorry");
+           }
+
+           arr[i] = value;
+       }
+
+       return arr;
+   }
+
+
+   static void PrintColors(int[] arr)
+   {
+       Console.WriteLine("Final elements:");
+       foreach (int color in arr)
+       {
+           Console.Write(color + " ");
+       }
+       Console.WriteLine();
+   }
+
+
+   static void SortColors(int[] nums)
+   {
+       int low = 0;
+       int mid = 0;
+       int high = nums.Length - 1;
+
+       while (mid <= high)
+       {
+           if (nums[mid] == 0)
+           {
+               // swap nums[low] and nums[mid]
+               int temp = nums[low];
+               nums[low] = nums[mid];
+               nums[mid] = temp;
+
+               low++;
+               mid++;
+           }
+           else if (nums[mid] == 1)
+           {
+               mid++;
+           }
+           else // nums[mid] == 2
+           {
+               // swap nums[mid] and nums[high]
+               int temp = nums[mid];
+               nums[mid] = nums[high];
+               nums[high] = temp;
+
+               high--;
+           }
+       }
+   }
+
+ // second Way to solve the problem :
+ int[] color = ReadColors(); 
+ SortColors(color);
+ PrintColors(color);

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Sorter Pro - Visualization</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Smooth transitions for moving blocks */
+        .block-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Custom Scrollbar for code block */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e1e1e; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #444; 
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col items-center p-4 md:p-8">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 flex flex-col min-h-[800px]">
+        
+        <div class="bg-gradient-to-r from-slate-900 to-slate-800 pt-6 px-6 pb-0 text-white">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                        Sort Colors Visualization
+                    </h1>
+                    <p class="text-slate-300 font-light flex items-center gap-2">
+                        <span>Dutch National Flag Algorithm</span>
+                        <span class="text-slate-500">|</span>
+                        <span id="backendStatus" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-700 text-slate-300">Python Backend Ready</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex gap-1">
+                <button onclick="switchTab('visualizer')" id="tab-visualizer" class="flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-colors bg-white text-slate-900">
+                    <i data-lucide="eye" class="w-4 h-4"></i> Visualizer
+                </button>
+                <button onclick="switchTab('code')" id="tab-code" class="flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-colors bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200">
+                    <i data-lucide="code" class="w-4 h-4"></i> Python Code
+                </button>
+            </div>
+        </div>
+
+        <div id="content-visualizer" class="flex flex-col flex-grow">
+            <div class="p-6 border-b border-slate-100 bg-slate-50">
+                <div class="flex flex-col md:flex-row gap-6 items-start justify-between mb-4">
+                    
+                    <div class="w-full md:w-2/3 flex flex-col gap-4">
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">
+                                Number of Colors (N)
+                            </label>
+                            <input type="number" id="nInput" 
+                                value="6"
+                                class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all font-mono text-sm placeholder-slate-400"
+                                placeholder="e.g. 6">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1">
+                                Colors <span class="text-xs font-normal text-slate-500">(Space separated 0, 1, or 2)</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="text" id="colorsInput" 
+                                    value="2 0 2 1 1 0"
+                                    class="w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all font-mono text-sm placeholder-slate-400"
+                                    placeholder="e.g. 2 0 2 1 1 0">
+                                
+                                <button onclick="randomizeInput()" class="p-3 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600 transition-colors" title="Randomize">
+                                    <i data-lucide="shuffle" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <div id="errorMsg" class="hidden flex items-center gap-2 text-red-500 text-sm mt-2">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                <span>Only numbers 0, 1, and 2 are allowed.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/3 flex flex-col items-start md:items-end">
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Animation Speed</label>
+                        <input type="range" id="speedInput" min="100" max="1000" step="100" value="600" 
+                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <span id="speedLabel" class="text-xs text-slate-500 mt-1">Normal</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center gap-4 mt-6">
+                    <button onclick="reset()" class="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 font-medium transition-colors">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+                    </button>
+                    
+                    <button onclick="stepBackward()" id="btn-back" class="p-3 rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all">
+                        <i data-lucide="chevron-right" class="w-6 h-6 rotate-180"></i>
+                    </button>
+
+                    <button onclick="togglePlay()" id="btn-play" class="p-4 rounded-full text-white shadow-lg transform active:scale-95 transition-all bg-blue-600 hover:bg-blue-700">
+                        <i data-lucide="play" class="w-7 h-7 ml-1 fill-current"></i>
+                    </button>
+
+                    <button onclick="stepForward()" id="btn-fwd" class="p-3 rounded-full hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-transparent transition-all">
+                        <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                    </button>
+                    
+                    <button onclick="verifyWithServer()" class="ml-4 text-xs font-mono text-blue-600 border border-blue-200 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition-colors">
+                        Verify API
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-8 md:p-12 bg-white flex flex-col items-center justify-center flex-grow min-h-[400px]">
+                
+                <div class="mb-12 text-center h-16 flex items-center justify-center w-full">
+                    <span id="statusText" class="px-4 py-2 rounded-full text-lg font-medium bg-slate-100 text-slate-700 border border-slate-200 transition-all duration-300">
+                        Ready to sort
+                    </span>
+                </div>
+
+                <div id="arrayContainer" class="relative flex items-end gap-2 md:gap-4 h-32 mb-16">
+                    </div>
+
+            </div>
+
+            <div class="bg-slate-50 border-t border-slate-200 p-6">
+                <div class="flex flex-wrap justify-center gap-6 text-sm text-slate-600">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-red-500 border border-red-600"></div>
+                        <span>0 (Red)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-slate-100 border border-slate-300"></div>
+                        <span>1 (White)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 rounded bg-blue-500 border border-blue-600"></div>
+                        <span>2 (Blue)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-code" class="hidden flex-grow bg-[#1e1e1e] p-8 overflow-auto custom-scrollbar">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-slate-300 font-mono text-sm uppercase tracking-wider">Python Solution (Dutch National Flag)</h3>
+                    <button onclick="copyCode()" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition-all text-xs font-medium">
+                        <i data-lucide="copy" class="w-3 h-3"></i> <span id="copyText">Copy Code</span>
+                    </button>
+                </div>
+                
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+                    <pre class="relative bg-[#0d0d0d] p-6 rounded-lg overflow-x-auto border border-slate-800 shadow-2xl"><code class="font-mono text-sm leading-relaxed text-slate-300">
+<span class="text-purple-400">class</span> <span class="text-yellow-200">Solution</span>:
+    <span class="text-slate-500"># Time Complexity: O(n)</span>
+    <span class="text-slate-500"># Space Complexity: O(1)</span>
+    <span class="text-purple-400">def</span> <span class="text-blue-400">sortColors</span>(self, nums):
+        <span class="text-slate-400">low = <span class="text-orange-400">0</span></span>
+        <span class="text-slate-400">mid = <span class="text-orange-400">0</span></span>
+        <span class="text-slate-400">high = <span class="text-blue-300">len</span>(nums) - <span class="text-orange-400">1</span></span>
+
+        <span class="text-purple-400">while</span> mid <= high:
+            <span class="text-purple-400">if</span> nums[mid] == <span class="text-orange-400">0</span>:
+                <span class="text-slate-400">nums[low], nums[mid] = nums[mid], nums[low]</span>
+                <span class="text-slate-400">low += <span class="text-orange-400">1</span></span>
+                <span class="text-slate-400">mid += <span class="text-orange-400">1</span></span>
+            <span class="text-purple-400">elif</span> nums[mid] == <span class="text-orange-400">1</span>:
+                <span class="text-slate-400">mid += <span class="text-orange-400">1</span></span>
+            <span class="text-purple-400">else</span>:  <span class="text-green-600"># nums[mid] == 2</span>
+                <span class="text-slate-400">nums[mid], nums[high] = nums[high], nums[mid]</span>
+                <span class="text-slate-400">high -= <span class="text-orange-400">1</span></span>
+                    </code></pre>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white/5 p-4 rounded-lg border border-white/10">
+                        <h4 class="text-blue-400 font-semibold mb-2">Algorithm Strategy</h4>
+                        <p class="text-slate-400 text-sm">
+                            This uses the 3-way partitioning logic (Dutch National Flag problem). 
+                            We maintain three pointers: <code class="text-red-400">low</code> for 0s, <code class="text-purple-400">mid</code> for 1s, and <code class="text-blue-400">high</code> for 2s.
+                        </p>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-lg border border-white/10">
+                        <h4 class="text-green-400 font-semibold mb-2">Complexity</h4>
+                        <p class="text-slate-400 text-sm">
+                            This solution performs a single pass through the array <strong>O(N)</strong> and swaps elements in-place with constant extra space <strong>O(1)</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const COLORS = {
+            0: 'bg-red-500 border-red-600 text-white',
+            1: 'bg-slate-100 border-slate-300 text-slate-800',
+            2: 'bg-blue-500 border-blue-600 text-white'
+        };
+
+        const POINTER_STYLES = {
+            low: 'text-red-600 border-red-600 bg-red-50',
+            mid: 'text-purple-600 border-purple-600 bg-purple-50',
+            high: 'text-blue-600 border-blue-600 bg-blue-50'
+        };
+
+        let state = {
+            array: [2, 0, 2, 1, 1, 0],
+            steps: [],
+            currentStep: 0,
+            isPlaying: false,
+            speed: 600,
+            timer: null
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            nInput: document.getElementById('nInput'),
+            colorsInput: document.getElementById('colorsInput'),
+            error: document.getElementById('errorMsg'),
+            container: document.getElementById('arrayContainer'),
+            status: document.getElementById('statusText'),
+            speed: document.getElementById('speedInput'),
+            speedLabel: document.getElementById('speedLabel'),
+            btnPlay: document.getElementById('btn-play'),
+            btnBack: document.getElementById('btn-back'),
+            btnFwd: document.getElementById('btn-fwd')
+        };
+
+        // --- Logic: Dutch National Flag Algorithm Generator ---
+        function generateSteps(initialArr) {
+            const nums = [...initialArr];
+            const steps = [];
+            let low = 0;
+            let mid = 0;
+            let high = nums.length - 1;
+
+            // Initial State
+            steps.push({
+                nums: [...nums], low, mid, high,
+                description: "Initial State"
+            });
+
+            while (mid <= high) {
+                // Snapshot before action
+                steps.push({
+                    nums: [...nums], low, mid, high, active: mid,
+                    description: `Checking index ${mid} (Value: ${nums[mid]})`
+                });
+
+                if (nums[mid] === 0) {
+                    [nums[low], nums[mid]] = [nums[mid], nums[low]];
+                    steps.push({
+                        nums: [...nums], low, mid, high, swapped: [low, mid],
+                        description: `Found 0: Swap index ${low} and ${mid}`
+                    });
+                    low++;
+                    mid++;
+                } else if (nums[mid] === 1) {
+                    mid++;
+                    steps.push({
+                        nums: [...nums], low, mid, high,
+                        description: `Found 1: Leave as is, increment mid`
+                    });
+                } else {
+                    [nums[mid], nums[high]] = [nums[high], nums[mid]];
+                    steps.push({
+                        nums: [...nums], low, mid, high, swapped: [mid, high],
+                        description: `Found 2: Swap index ${mid} and ${high}`
+                    });
+                    high--;
+                }
+            }
+
+            steps.push({
+                nums: [...nums], low, mid, high, completed: true,
+                description: "Sorting Complete"
+            });
+            return steps;
+        }
+
+        // --- Rendering ---
+        function render() {
+            const step = state.steps[state.currentStep];
+            if (!step) return;
+
+            // Update Status Badge
+            els.status.textContent = step.description;
+            els.status.className = step.completed
+                ? "px-4 py-2 rounded-full text-lg font-medium bg-green-100 text-green-700 border border-green-200 transition-all duration-300"
+                : "px-4 py-2 rounded-full text-lg font-medium bg-slate-100 text-slate-700 border border-slate-200 transition-all duration-300";
+
+            // Clear Container
+            els.container.innerHTML = '';
+
+            // Render Blocks
+            step.nums.forEach((val, idx) => {
+                const isSwapped = step.swapped?.includes(idx);
+                const isActive = step.active === idx;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = "relative group";
+
+                // The Block
+                const block = document.createElement('div');
+                block.className = `w-12 h-12 md:w-16 md:h-16 rounded-xl flex items-center justify-center text-2xl font-bold shadow-sm border-2 block-transition transform ${COLORS[val]}
+                    ${isSwapped ? '-translate-y-4 scale-110 shadow-lg z-10' : ''}
+                    ${isActive ? 'scale-105 ring-2 ring-offset-2 ring-purple-400' : ''}
+                `;
+                block.textContent = val;
+                wrapper.appendChild(block);
+
+                // Index
+                const indexLabel = document.createElement('div');
+                indexLabel.className = "absolute -bottom-8 w-full text-center text-xs text-slate-400 font-mono";
+                indexLabel.textContent = idx;
+                wrapper.appendChild(indexLabel);
+
+                // Pointers Container
+                const ptrContainer = document.createElement('div');
+                ptrContainer.className = "absolute top-full mt-8 left-1/2 -translate-x-1/2 w-8 flex flex-col items-center gap-1 transition-all duration-300";
+
+                // Add Pointers
+                if (step.low === idx) addPointer(ptrContainer, 'Low', POINTER_STYLES.low);
+                if (step.mid === idx) addPointer(ptrContainer, 'Mid', POINTER_STYLES.mid);
+                if (step.high === idx) addPointer(ptrContainer, 'High', POINTER_STYLES.high);
+
+                wrapper.appendChild(ptrContainer);
+                els.container.appendChild(wrapper);
+            });
+
+            // Update Button States
+            els.btnBack.disabled = state.currentStep === 0;
+            els.btnFwd.disabled = state.currentStep === state.steps.length - 1;
+            
+            // Update Play Button Icon
+            const playIcon = els.btnPlay.querySelector('svg');
+            els.btnPlay.className = state.isPlaying 
+                ? "p-4 rounded-full text-white shadow-lg transform active:scale-95 transition-all bg-amber-500 hover:bg-amber-600"
+                : "p-4 rounded-full text-white shadow-lg transform active:scale-95 transition-all bg-blue-600 hover:bg-blue-700";
+            
+            els.btnPlay.innerHTML = state.isPlaying 
+                ? `<i data-lucide="pause" class="w-7 h-7 fill-current"></i>`
+                : `<i data-lucide="play" class="w-7 h-7 ml-1 fill-current"></i>`;
+            
+            lucide.createIcons();
+        }
+
+        function addPointer(parent, text, styleClass) {
+            const div = document.createElement('div');
+            div.className = `px-2 py-1 rounded text-xs font-bold uppercase tracking-wider border shadow-sm w-max ${styleClass}`;
+            div.textContent = text;
+            parent.appendChild(div);
+        }
+
+        // --- Interaction Handlers ---
+        function parseInput() {
+            const str = els.colorsInput.value;
+            const cleaned = str.replace(/[\[\]]/g, '');
+            if (!cleaned.trim()) return [];
+            
+            const items = cleaned.split(/[\s,]+/).filter(val => val !== "");
+            const parsed = items.map(Number);
+            
+            const invalid = parsed.some(n => isNaN(n) || ![0, 1, 2].includes(n));
+            if (invalid) {
+                els.error.classList.remove('hidden');
+                els.colorsInput.classList.add('border-red-300', 'bg-red-50');
+                return null;
+            }
+            
+            els.error.classList.add('hidden');
+            els.colorsInput.classList.remove('border-red-300', 'bg-red-50');
+            return parsed;
+        }
+
+        function initSequence(arr) {
+            if(!arr) return;
+            state.array = arr;
+            state.steps = generateSteps(arr);
+            state.currentStep = 0;
+            state.isPlaying = false;
+            if(state.timer) clearInterval(state.timer);
+            render();
+        }
+
+        function randomizeInput() {
+            const len = Math.floor(Math.random() * 8) + 5; 
+            const randomArr = Array.from({ length: len }, () => Math.floor(Math.random() * 3));
+            
+            // Update both inputs
+            els.colorsInput.value = randomArr.join(" ");
+            els.nInput.value = len;
+
+            initSequence(randomArr);
+        }
+
+        function togglePlay() {
+            if (state.currentStep >= state.steps.length - 1) {
+                state.currentStep = 0;
+                render();
+            }
+            
+            state.isPlaying = !state.isPlaying;
+            render(); 
+            
+            if (state.isPlaying) {
+                state.timer = setInterval(() => {
+                    if (state.currentStep < state.steps.length - 1) {
+                        state.currentStep++;
+                        render();
+                    } else {
+                        state.isPlaying = false;
+                        clearInterval(state.timer);
+                        render();
+                    }
+                }, 1100 - state.speed);
+            } else {
+                clearInterval(state.timer);
+            }
+        }
+
+        function stepForward() {
+            if (state.currentStep < state.steps.length - 1) {
+                state.currentStep++;
+                state.isPlaying = false;
+                clearInterval(state.timer);
+                render();
+            }
+        }
+
+        function stepBackward() {
+            if (state.currentStep > 0) {
+                state.currentStep--;
+                state.isPlaying = false;
+                clearInterval(state.timer);
+                render();
+            }
+        }
+
+        function reset() {
+            initSequence(parseInput());
+        }
+
+        // --- Tabs ---
+        function switchTab(tab) {
+            document.getElementById('content-visualizer').classList.add('hidden');
+            document.getElementById('content-code').classList.add('hidden');
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            
+            document.getElementById('tab-visualizer').className = "flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-colors bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200";
+            document.getElementById('tab-code').className = "flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-colors bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200";
+            
+            const activeClass = "bg-white text-slate-900";
+            document.getElementById(`tab-${tab}`).className = `flex items-center gap-2 px-6 py-3 rounded-t-lg font-medium transition-colors ${activeClass}`;
+        }
+
+        function copyCode() {
+            const code = document.querySelector('code').innerText;
+            navigator.clipboard.writeText(code);
+            const btnText = document.getElementById('copyText');
+            const originalText = btnText.textContent;
+            btnText.textContent = "Copied!";
+            setTimeout(() => btnText.textContent = originalText, 2000);
+        }
+
+        // --- API Integration (Server Check) ---
+        async function verifyWithServer() {
+            const nums = parseInput();
+            const nVal = els.nInput.value;
+
+            if(!nums || !nVal) {
+                alert("Please provide both N and Colors");
+                return;
+            }
+
+            const originalBtnText = els.status.textContent;
+            els.status.textContent = "Checking Server...";
+            els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-blue-100 text-blue-700 border border-blue-200";
+
+            try {
+                // Connecting to app.py /api/sort endpoint
+                // Sending exact inputs as requested
+                const response = await fetch('/api/sort', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        n: nVal, 
+                        colors: nums.join(' ') 
+                    })
+                });
+                const data = await response.json();
+                
+                if(data.success) {
+                    // Check if server returned "sorry" (Mismatch length error from color_sorter.py)
+                    if(data.result === "sorry") {
+                         els.status.textContent = "Server Error: Count mismatch (N != len(Colors))";
+                         els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-red-100 text-red-700 border border-red-200";
+                         return;
+                    }
+
+                    // Compare result
+                    const serverResult = data.result.split(' ').map(Number);
+                    const visualResult = state.steps[state.steps.length-1].nums;
+                    
+                    const isMatch = JSON.stringify(serverResult) === JSON.stringify(visualResult);
+                    
+                    if(isMatch) {
+                        els.status.textContent = "Verified: Server Match!";
+                        els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-green-100 text-green-700 border border-green-200";
+                    } else {
+                        els.status.textContent = "Mismatch detected!";
+                        els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-red-100 text-red-700 border border-red-200";
+                    }
+                } else {
+                    // Handle generic server errors
+                    els.status.textContent = "Server Error: " + data.result;
+                    els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-red-100 text-red-700 border border-red-200";
+                }
+            } catch (e) {
+                console.error(e);
+                els.status.textContent = "Server Connection Failed";
+                els.status.className = "px-4 py-2 rounded-full text-lg font-medium bg-red-100 text-red-700 border border-red-200";
+            }
+        }
+
+        // --- Initialization ---
+        // Auto-update visualizer when color string changes
+        els.colorsInput.addEventListener('input', () => {
+            const arr = parseInput();
+            if (arr) {
+                initSequence(arr);
+                // Optional: Auto-update N to match length for convenience
+                // els.nInput.value = arr.length; 
+            }
+        });
+
+        els.speed.addEventListener('input', (e) => {
+            state.speed = 1100 - Number(e.target.value);
+            const val = Number(e.target.value);
+            els.speedLabel.textContent = val < 300 ? 'Slow' : val > 800 ? 'Fast' : 'Normal';
+            if (state.isPlaying) {
+                clearInterval(state.timer);
+                togglePlay(); togglePlay(); 
+            }
+        });
+
+        // Start
+        lucide.createIcons();
+        reset();
+
+    </script>
+</body>
+</html>
